@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Status</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #333;
+            text-align: center;
+        }
+
+        .alert {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        .alert.alert-success {
+            background-color: #28a745;
+        }
+
+        .alert.alert-danger {
+            background-color: #dc3545;
+        }
+
+        .col {
+            text-align: center;
+        }
+
+        a {
+            text-decoration: none;
+            color: #fff;
+            background-color: #007bff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: inline-block;
+            margin-top: 10px;
+            font-size: 1.1em;
+        }
+
+        a:hover {
+            background-color: #0056b3;
+        }
+
+        .my-4 {
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .mt-3 {
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="alert alert-success" role="alert">
+        PAYMENT STATUS
+    </div>
+    <div class="container mt-3">
+        {{response}}
+        <div class="col my-4">
+            <h2>Payment status regarding your Id {{response.ORDERID}}</h2>
+            {% if response.RESPCODE == '01' %}
+            ORDER SUCCESS
+            <br>
+            <a id="btn" href="/tracker">Track Your Status</a>
+            {% else %}
+            ORDER FAILURE
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

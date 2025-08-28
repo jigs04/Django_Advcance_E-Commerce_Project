@@ -1,0 +1,178 @@
+{% extends "nav.html" %}
+
+{% block title %}
+Tracking Page
+{% endblock title %}
+
+{% block body %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+        color: #333;
+    }
+
+    .container {
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: #fff;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+        text-align: center;
+        color: #333;
+    }
+
+    label {
+        font-size: 16px;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    input[type="text"],
+    input[type="email"] {
+        width: 100%;
+        padding: 12px;
+        margin: 10px 0;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+
+    button {
+        width: 100%;
+        padding: 14px;
+        background-color: #28a745;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #218838;
+    }
+
+    .status {
+        margin-top: 20px;
+        font-size: 18px;
+        text-align: center;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: #f8f9fa;
+    }
+
+    .status.success {
+        color: green;
+        border-color: green;
+    }
+
+    .status.error {
+        color: red;
+        border-color: red;
+    }
+</style>
+
+<div class="container">
+    <div class="col my-4">
+        <h1>Enter Your Order Id and Email Address to Track Your Order</h1>
+        <form method="post" action="#" id="trackerForm">
+            {% csrf_token %}
+            <div class="form-row">
+                <div class="form-group col md-6">
+                    <label for="name">Order Id</label>
+                    <input type="text" class="form-control" id="orderId" name="orderId" placeholder="Order ID"
+                        autocomplete="off">
+                </div>
+
+                <div class="form-group col md-6">
+                    <label for="email">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="Email"
+                        autocomplete="off">
+                </div>
+                <br>
+                <button type="submit" class="btn btn-success">Track Order</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="col my-4">
+        <h2>Your Order Status</h2>
+        <div class="my-4">
+            <ul class="list-group" id="items">
+                Enter your order Id and Email, and click Track Order to find details about your order!
+            </ul>
+        </div>
+
+        <h2>Your Order Details</h2>
+        <div class="my-4">
+            <ul class="list-group" id="citems">
+                <!-- Order details will be displayed here -->
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% block script %}
+<script>
+    $('#trackerForm').submit(function (event) {
+        $('#items').empty();
+        var formData = {
+            'orderId': $('input[name=orderId]').val(),
+            'email': $('input[name=email]').val(),
+            'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+        };
+
+        $.ajax({
+            type: 'POST',
+            url: '/tracker',
+            data: formData,
+            encode: true
+        })
+            .done(function (data) {
+                console.log(data);
+                data = JSON.parse(data);
+                updates = data[0];
+
+                if (updates.length > 0 && updates != {}) {
+                    for (i = 0; i < updates.length; i++) {
+                        let text = updates[i]['text'];
+                        let time = updates[i]['time'];
+                        mystr = `<li class="list-group-item d-flex justify-content-between align-items-center">
+                        ${text}
+                        <span class="badge badge-primary badge-pill">${time}</span>
+                    </li>`;
+                        $('#items').append(mystr);
+                    }
+                } else {
+                    mystr = `<li class="list-group-item d-flex justify-content-between align-items-center">
+                    Sorry, we are not able to fetch this order id and email.
+                    Make sure to type the correct order Id and email.
+                </li>`;
+                    $('#items').append(mystr);
+                }
+
+                // Fill in the order details
+                cart = JSON.parse(data[1]);
+                for (item in cart) {
+                    let name = cart[item][1];
+                    let qty = cart[item][0];
+
+                    mystr = `<li class="list-group-item d-flex justify-content-between align-items-center">
+                    ${name}
+                    <span class="badge badge-primary badge-pill">${qty}</span>
+                </li>`;
+                    $('#citems').append(mystr);
+                }
+            });
+
+        event.preventDefault();
+    });
+</script>
+{% endblock script %}
+{% endblock body %}

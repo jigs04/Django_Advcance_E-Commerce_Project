@@ -1,0 +1,204 @@
+{% extends 'nav.html' %}
+{% block title %}
+AISPACEX
+{% endblock title%}
+
+{% block body %}
+{% load static %}
+
+{% for product, range, nSlides in allProds %}
+
+<div class="container">
+    <h3 class="my-3 text-center text-success bg-light"> {{product.0.category}} Flashsale</h3>
+</div>
+
+
+<div class="container">
+    <div class="row">
+        {% for i in product %}
+        <div class="col-md-3 mt-3">
+            <img src="/media/{{i.image}}" class="card-img-top" alt="..." />
+            <div class="card-body">
+                <h5 class="card-title" id="namepr{{i.id}}">
+                    {{i.product_name}}
+                </h5>
+                <p class="card-text">{{i.desc|slice:"0:25"}}...</p>
+                <h6>
+                    price:<span id="pricepr{{i.id}}">{{i.price}}</span>
+                </h6>
+                <span id="divpr{{i.id}}" class="divpr">
+                    <button id="pr{{i.id}}" class="btn btn-success cart btn-sm mt-0">
+                        AddToCart
+                    </button>
+                </span>
+                <a href="/media/{{i.image}}">
+                    <button class="btn btn-success btn-sm cart">View</button>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endfor %}
+
+
+
+{% block script %}
+<script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+    crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"
+    integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k"
+    crossorigin="anonymous"></script>
+
+<script>
+
+    //find pout the card from local storage
+
+    if (localStorage.getItem('cart') == null) {
+        var cart = {};
+    } else {
+        cart = JSON.parse(localStorage.getItem('cart'));
+        updateCart(cart);
+
+    }
+    //add or increment code
+
+    // $('.cart').click(function() {
+    $('.divpr').on('click', 'button.cart', function () {
+        var idstr = this.id.toString();
+
+        if (cart[idstr] != undefined) {
+            qty = cart[idstr][0] + 1;
+
+        } else {
+            qty = 1;
+            name = document.getElementById('name' + idstr).innerHTML;
+            price = document.getElementById('price' + idstr).innerHTML;
+            cart[idstr] = [qty, name, price];
+        }
+        updateCart(cart);
+
+        localStorage.setItem('cart', JSON.stringify(cart));
+        document.getElementById('cart').innerHTML = Object.keys(cart).length;
+    });
+    //add pop over to cart
+
+    $('#popcart').popover();
+
+    updatePopover(cart);
+
+    function updatePopover(cart) {
+        console.log('We are inside updatePopover', cart);
+
+        // Start with the initial popover content
+        let popStr = "<h5>cart for your items<br> in my shopping cart</h5><div class='mx-2 my-2'>";
+        let i = 1;
+
+        // Loop through each item in the cart
+        for (var item in cart) {
+            const nameElement = document.getElementById('name' + item);
+
+            if (nameElement) {
+                // Adding the item name (first 19 characters) and quantity to popStr
+                popStr += "<b>" + i + "</b>. ";
+                popStr += nameElement.innerHTML.slice(0, 19) + "<b>" + cart[item][1] + cart[item][0] + "</b> Qty<br>";
+            } else {
+                // Fallback if the nameElement is not found
+                popStr += "<b>" + i + "</b>. Item not found <b>" + cart[item][0] + "</b> Qty<br>";
+            }
+
+            i++; // Increment item counter
+        }
+
+        // Close the div
+        popStr += "</div>";
+
+        // Add checkout and clear cart buttons
+        popStr += `
+    <a href='/checkout'>
+        <button class='btn btn-success' id='clearCart'>Checkout</button>
+    </a>
+    <button class='btn btn-dark' onclick='clearCart()' id='clearCartBtn'>Clear Cart</button>
+`;
+
+        // Update the popover content
+        const popcart = document.getElementById('popcart');
+        if (popcart) {
+            popcart.setAttribute('data-content', popStr);
+
+            // Ensure popover is initialized with HTML support
+            $('#popcart').popover({
+                html: true // Allow HTML inside popover
+            });
+
+            // Show the popover
+            $('#popcart').popover('show');
+        } else {
+            console.error("Popover container 'popcart' not found.");
+        }
+    }
+
+
+    function clearCart() {
+        cart = JSON.parse(localStorage.getItem('cart'));
+        for (var item in cart) {
+            document.getElementById('div' + item).innerHTML = '<button id="' + item + '" class="btn btn-success cart">Add to cart</button>'
+        }
+        localStorage.clear();
+        cart = {};
+        updateCart(cart);
+    }
+
+    function updateCart(cart) {
+        var sum = 0;
+        for (var item in cart) {
+            console.log('Processing item: ' + item); // Check item value
+            const div = document.getElementById('div' + item);
+            if (div) {
+                sum += cart[item][0];
+                div.innerHTML = `
+                <button id="minus${item}" class="btn btn-success minus">-</button>
+                <span id="val${item}">${cart[item][0]}</span>
+                <button id="plus${item}" class="btn btn-success plus">+</button>
+            `;
+            } else {
+                console.error(`Element with ID 'div${item}' not found.`);
+            }
+        }
+        localStorage.setItem('cart', JSON.stringify(cart));
+        document.getElementById('cart').innerHTML = sum;
+        console.log(cart);
+        updatePopover(cart);
+    }
+
+
+    // if plus or minus button is clicked change the cart as well as the display value
+
+    $('.divpr').on("click", "button.minus", function () {
+
+        a = this.id.slice(7,);
+        cart['pr' + a][0] = cart['pr' + a][0] - 1;
+        cart['pr' + a][0] = Math.max(0, cart['pr' + a][0]);
+        document.getElementById('valpr' + a).innerHTML = cart['pr' + a][0];
+        updateCart(cart);
+
+    })
+
+    $('.divpr').on("click", "button.plus", function () {
+
+        a = this.id.slice(6,);
+        cart['pr' + a][0] = cart['pr' + a][0] + 1;
+
+        document.getElementById('valpr' + a).innerHTML = cart['pr' + a][0];
+        updateCart(cart);
+
+    })
+
+
+</script>
+<br>
+
+{% endblock script %}
+{% endblock body %}
